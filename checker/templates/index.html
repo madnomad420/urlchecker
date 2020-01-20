@@ -1,0 +1,49 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<input type="number" id="interval" value="1" /><input type="button" id="inteval-setter" value="Set inteval in seconds" />
+<form action="{% url 'check' %}" method="POST" id="check-form">
+    {% csrf_token %}
+    <input type="submit" id="check" value="Check" />
+    <table>
+        {% for url in urls %}
+        <tr id="url-{{url.pk}}">
+            <td><input type="checkbox" name="urls" id="check" checked value="{{url.pk}}" /></td>
+            <td>{{url}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</form>
+
+<!--sorry-->
+<script type="text/javascript">
+    $(() => {
+        let check = () => {
+            $.post("{% url 'check' %}", $('#check-form').serialize(), (data) => {
+                data.forEach(result => {
+                    $('#url-' + result.id).css(
+                        'background-color',
+                        result.status === 200 ? 'rgb(0, 255, 0)' : 'rgb(255, 0, 0)'
+                    )
+                })
+            }, 'json')
+        }
+
+        let checkTimer = setInterval(() => {
+            check()
+        }, 1000)
+
+        $('#check').click(() => {
+            check()
+            return false
+        })
+
+        $('#inteval-setter').click(() => {
+            clearInterval(checkTimer)
+            checkTimer = setInterval(() => {
+                check()
+            }, parseInt($('#interval').val()) * 1000)
+        })
+    })
+</script>
+{% endblock %}
